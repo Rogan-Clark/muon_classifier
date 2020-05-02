@@ -1,0 +1,112 @@
+* CORSIKA inputs file template for ASTRI Serra Le Nave simulations.
+* Includes alternatives for different primaries (non-gammas commented out),
+* for PRMPAR, ERANGE, VIEWCONE, CSCAT parameters.
+* Number of showers to be simulated needs to be adapted to run duration for each primary type.
+* SEEDs need to be re-generated for each simulation run separately!!!
+*
+* =============== Corsika INPUTS =======================
+*
+* [ Job parameters ]
+*
+RUNNR   1                              // Number of run, to be auto-numbered by job submission
+EVTNR   1                              // Number of first shower event (usually 1)
+* NSHOW  	100    	       	       	       // TEST
+* NSHOW   5000                           // number of showers to generate
+NSHOW   10000
+*
+* [ Random number generator: 4 sequences used in IACT mode ]
+*
+SEED   385928125   401   0              // Seed for 1st random number sequence, to be re-generated
+SEED   827619802   859   0              // Seed for 2nd random number sequence, to be re-generated
+SEED   195989238   390   0              // Seed for 3rd random number sequence, to be re-generated
+SEED   539053819   323   0              // Seed for 4th random number sequence, to be re-generated
+*
+* [ Primary particle options ]
+*
+* PRMPAR  1             // Particle type of prim. particle (1: gamma; 3: elec, 14: proton, 402: helium)
+* PRMPAR  3             // Particle type of prim. particle (3: electron)
+PRMPAR  14            // Particle type of prim. particle (14: proton)
+* PRMPAR  402           // Particle type of prim. particle (402: helium)
+* PRMPAR  1407          // Particle type of prim. particle (1407: nitrogen)
+* PRMPAR  2814          // Particle type of prim. particle (2814: silicon)
+* PRMPAR  5626          // Particle type of prim. particle (5626: iron)
+ESLOPE  -2.0          // Slope of primary energy spectrum (-2.0 is equal CPU time per decade)
+* ERANGE  100.0 330E3     // Energy range of primary particle (in GeV): gammas & electrons
+* ERANGE  1E3 600E3     // Energy range of primary particle (in GeV): protons Version 1
+ERANGE  0.5E3 600E3     // Energy range of primary particle (in GeV): protons Version 2
+* ERANGE  0.01E3 1200E3 // Energy range of primary particle (in GeV): helium
+* ERANGE  0.04E3 4000E3 // Energy range of primary particle (in GeV): nitrogen
+* ERANGE  0.05E3 5000E3 // Energy range of primary particle (in GeV): silicon
+* ERANGE  0.06E3 6000E3 // Energy range of primary particle (in GeV): iron
+* ERANGE  0.3E3 3E3     // for test only
+
+THETAP  0.  0.      // Range of zenith angles (degree)
+* PHIP    0. 0.         // Range of azimuth angles (degree): primaries coming from South
+PHIP   180. 180.    // Range of azimuth angles (degree): primaries coming from North
+* VIEWCONE 0. 0.        // Can be a cone around fixed THETAP/PHIP (gamma point source)
+VIEWCONE 0. 10.     // Diffuse components (gammas, electrons, protons & nuclei)
+*
+* [ Site specific options ]
+*
+* SLN:
+*
+* ATMOSPHERE 6 T                  U.S. standard atmosphere, with refraction
+* OBSLEV  1740.0E2                observation level (in cm)
+* MAGNET  26.84  36.04            magnetic field at Serra La Nave Obs, l=0 [H, Z] (muT)
+*
+* ARRANG  0.            // Rotation of array to north [D] (degree); use zero here for any site for now
+*
+* Paranal:
+*
+OBSLEV 2150.E2      // Observation level (in cm) for CTA near Paranal
+ATMOSPHERE 26 Y     // Should be slightly better for Paranal than profiles 1 (tropical) or 10 (HESS)
+MAGNET 20.925 -9.119 // Magnetic field at Paranal site [H, Z] (muT), 2020.
+ARRANG -3.433        // Necessary rotation angle to account for B field declination (deg.), 2020.
+*
+* [ Core range ]
+*
+* CSCAT  10  1200e2  0. // Use shower several times (gammas, point source only)
+* CSCAT  1  400e2  0. // for test only
+CSCAT  10  600e2  0. // Use shower several times (protons+electrons+..., larger area for diffuse origin)
+*
+* [ Telescope positions, for IACT option ] 
+*
+TELESCOPE      0.000E2      0.000E2     5.000E2     2.800E2    # Telescope   1
+*
+* [Interaction flags]
+*
+FIXHEI  0.  0          // First interaction height & target (0. 0 for random)
+FIXCHI  0.             // Starting altitude (g/cm**2). 0. is at boundary to space.
+TSTART  T              // Needed for emission and scattering of primary
+ECUTS   0.3  0.1  0.020  0.020         // Energy cuts for particles
+MUADDI  F                              // Additional info for muons not needed
+MUMULT  T                              // Muon multiple scattering angle
+LONGI   T  20.  F  F                   // Longit.distr. & step size & fit
+MAXPRT  0                              // Max. number of printed events
+ECTMAP  1.E6                           // Cut on gamma factor for printout
+STEPFC  1.0                            // Mult. scattering step length factor
+*
+* [ Cherenkov emission parameters ]
+*
+CERSIZ  5.         // Not above 10 for super/ultra-bialkali QE; 7 is fairly OK; 5 should be safe.
+CERFIL  F                              // No old-style Cherenkov output to extra file
+CWAVLG  250.  700.                     // Cherenkov wavelength band
+*
+* [ Debugging and output options ]
+*
+DEBUG   F  6  F  1000000               // Debug flag and logical unit for output
+DATBAS yes                             // Write a file with parameters used
+DIRECT  /dev/null                      // /dev/null means no normal CORSIKA data written
+* TELFIL |${SIM_TELARRAY_PATH}/run_sim_cta-ultra5:100:100:1     // Telescope photon bunch output (eventio format)
+TELFIL cta-astri-sln.corsika.gz       // If telescope simulation not done directly in pipe
+*
+* [ IACT tuning parameters ]
+*
+IACT SPLIT_AUTO 8M                    // Split data with more than 15 million bunches
+IACT IO_BUFFER 800MB                   // At 32 bytes per bunch this could be up to 500 MB
+IACT MAX_BUNCHES 1000000               // Let photon bunch thinning set in earlier.
+*
+* [ This is the end, my friend ]
+*
+EXIT                                   // terminates input
+* ========================================================
