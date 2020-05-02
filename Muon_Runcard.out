@@ -1,0 +1,128 @@
+* CORSIKA inputs file template for CTA prod-3 simulations of vertical muons into single telescopes.
+* Starting altitudes, angles, and maximum impact parameters are site and telescope-type specific.
+* The idea here is to simulate muons which _generally_ will result in complete rings within the
+* field of view. For an unbiased simulation, higher starting altitudes, wider off-axis angles
+* and wider ranges of impact parameters need to be covered, in most cases only resulting in
+* partial rings.
+*  - PRMPAR for primary particle type (default: 6)
+*  - EMIN & EMAX for energy range (note: in TeV units! Default: 0.004 1.0)
+*  - ESLOPE for spectral index (note: should be negative! Default: -2.0)
+*  - ZENITH_ANGLE (in degrees; default: 0)
+*  - AZIMUTH_ANGLE (in degrees; default: 180 = from [geomagnetic] North)
+*    or as named alternatives: FROM_SOUTH, FROM_EAST, FROM_WEST
+*  - DIFFUSE for telescope-type adapted VIEWCONE range
+*  - VIEWCONE for manually selected VIEWCONE range
+*  - CSCAT & NSCAT for core distance range and number of 'shower' uses
+*    (note: CSCAT value in meters!)
+*  - WRITE_CORSIKA_FILE -> write a file with photon bunches in the
+*    CORSIKA working directory rather than piping it into a
+*    matching telescope simulation.
+*
+* =============== Corsika INPUTS =======================
+*
+* [ Job parameters ]
+*
+RUNNR   1                               // Number of run, to be auto-numbered by job submission
+EVTNR   1                               // Number of first shower event (usually 1)
+*
+* [ Random number generator: 4 sequences used in IACT mode ]
+*
+SEED   385928125   401   0              // Seed for 1st random number sequence, to be re-generated
+SEED   827619802   859   0              // Seed for 2nd random number sequence, to be re-generated
+SEED   195989238   390   0              // Seed for 3rd random number sequence, to be re-generated
+SEED   539053819   323   0              // Seed for 4th random number sequence, to be re-generated
+*
+* [ Primary particle options ]
+*
+PRMPAR  6             // mu-
+*
+* ERANGE  5.832 1E3     // Energy range of primary particle (in GeV): muons with 50% opening angle or more
+ERANGE  8.418 1E3     // Energy range of primary particle (in GeV): muons with 80% opening angle or more
+*
+ESLOPE  -2.0          // Slope of primary energy spectrum (-2.0 is equal CPU time per decade)
+*
+NSHOW   10000                         // number of showers to generate
+*
+THETAP  0.  0.      // Range of zenith angles (degrees)
+*
+PHIP   180. 180.      // Range of azimuth angles (degree): primaries coming from North
+*
+* VIEWCONE 0. 3.9     // Such that at half of maximum Cherenkov angle the ring still fits into FoV. (4m SST: actual FoV-diam=9.0 deg)
+* VIEWCONE 0. 3.3     // Such that at maximum Cherenkov angle the ring still fits into FoV. (4m SST: actual FoV-diam=9.0 deg)
+VIEWCONE 0. 2.8     // Such that at maximum Cherenkov angle the ring still fits into FoV. (4m SST: required FoV-diam=8.0 deg)
+*
+* [ Site specific options ]
+* SLN
+* ATMOSPHERE 6 T                  U.S. standard atmosphere, with refraction
+* OBSLEV  1740.0E2                observation level (in cm)
+* MAGNET  26.84  36.04            magnetic field at Serra La Nave Obs, l=0 [H, Z] (muT)
+*
+* ARRANG  0.            // Rotation of array to north [D] (degree); use zero here for any site for now
+*
+* FIXCHI 808.
+*
+* Paranal:
+OBSLEV 2150.E2      // Observation level (in cm) for CTA near Paranal
+ATMOSPHERE 26 Y     // Should be slightly better for Paranal than profiles 1 (tropical) or 10 (HESS)
+MAGNET 20.925 -9.119 // Magnetic field at Paranal site [H, Z] (muT), 2020.
+ARRANG -3.433        // Necessary rotation angle to account for B field declination (deg.), 2020.
+FIXCHI 750.
+*
+* [ Telescope positions, for IACT option. Using CSCAT extending beyond/close to edge/to 80% of dish. ]
+*
+*
+TELESCOPE    0.0E2    0.0E2   3.25E2     3.25E2  # SST (4 m)
+* CSCAT  1  3.0E2  0.  # Just beyond dish + 0.9 m axis off-center
+* CSCAT  1  2.8E2  0.  # Close to edge of dish + 0.9 m axis off-center
+CSCAT  1  4E2  2.5E2   # To 80% of dish + 0.9 m axis off-center
+*
+* [Interaction flags]
+*
+FIXHEI  0.  0          // First interaction height & target (0. 0 for random)
+* FIXCHI  0.             // Starting altitude (g/cm**2). 0. is at boundary to space.
+TSTART  T              // Needed for emission and scattering of primary
+ECUTS   0.3  0.1  0.020  0.020         // Energy cuts for particles
+MUADDI  F                              // Additional info for muons not needed
+MUMULT  T                              // Muon multiple scattering angle
+LONGI   T  20.  F  F                   // Longit.distr. & step size & fit
+MAXPRT  0                              // Max. number of printed events
+ECTMAP  1.E6                           // Cut on gamma factor for printout
+STEPFC  1.0                            // Mult. scattering step length factor
+*
+* [ Cherenkov emission parameters ]
+*
+CERSIZ  5.         // Not above 10 for super/ultra-bialkali QE; 7 is fairly OK; 5 should be safe.
+CERFIL  F                              // No old-style Cherenkov output to extra file
+CWAVLG  230.  900.                     // Cherenkov wavelength band
+*
+* [ Debugging and output options ]
+*
+DEBUG   F  6  F  1000000               // Debug flag and logical unit for output
+DATBAS yes                             // Write a file with parameters used
+DIRECT  /dev/null                      // /dev/null means no normal CORSIKA data written
+*
+* For evaluating multiple types of telescopes/cameras with multiple optical efficiency
+* factors it may be better to write the photon bunches to disk and run the
+* telescope simulations one after the other, instead of all in parallel pipes.
+*
+*
+*
+* IACT interface writes its output (through gzip or zstd or whatever) into a file
+*
+TELFIL cta-astrichec-muon-SST.corsika.gz      // If telescope simulation not done directly in pipe
+*
+* IACT interface writes its output through multipipe_corsika to immediate processing.
+* Instead of different intermediate (symlinked) scripts we can now pass configuration
+* options down to the one common script and can control the simulation variant from here.
+*
+*
+* [ IACT tuning parameters ]
+*
+IACT SPLIT_AUTO 15M                    // Split data with more than 15 million bunches
+IACT IO_BUFFER 800MB                   // At 32 bytes per bunch this could be up to 500 MB
+IACT MAX_BUNCHES 1000000               // Let photon bunch thinning set in earlier.
+*
+* [ This is the end, my friend ]
+*
+EXIT                                   // terminates input
+* ========================================================
